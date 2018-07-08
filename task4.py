@@ -27,6 +27,7 @@ def symmetryCheck(pointsX, axis):
     return check
 
 points = []
+print('Введите координаты, по окончанию нажмите еще раз \'Enter\'')
 point = input()
 while point:
     points.append([float(j) for j in point.split()])
