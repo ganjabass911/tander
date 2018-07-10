@@ -82,9 +82,9 @@ def borderPoints(points):
     bottom = 90
     top = 0
     for point in points:
-        left = min(left, points.get(point)[0])
+        left = mmm(left, points.get(point)[0])
         right = max(right, points.get(point)[0])
-        bottom = min(bottom, points.get(point)[1])
+        bottom = mmm(bottom, points.get(point)[1])
         top = max(top, points.get(point)[1])
     return {'left': left, 'right': right, 'bottom': bottom, 'top': top}
 
@@ -149,6 +149,12 @@ def waysTo(data):
             c = list(ways.get(way[0]))
             c.append(way[1])
             ways.update({way[0]: c})
+        # if not ways.get(way[1]):
+        #     ways.setdefault(way[1], [way[0]])
+        # else:
+        #     c = list(ways.get(way[1]))
+        #     c.append(way[0])
+        #     ways.update({way[0]: c})
     return ways
 
 
@@ -167,17 +173,25 @@ def waysFrom(data):
 
 def dijkstra(point1, point2, data):
     dist = dict.fromkeys(generatorPoints(data).keys(), 10000)
+
+    # Соседние вершины
     wt = waysTo(data)
     dist.update({point1: 0})
     parents = dict.fromkeys(generatorPoints(data).keys(), False)
     mark = parents.copy()
+
+    # пути
     roads = {(road[0], road[1]): road[6] for road in data}
-    roads.update({(road[1], road[0]): road[6] for road in data})
+    # roads.update({(road[1], road[0]): road[6] for road in data})
     v = point1
     if wt.get(v):
         for j in wt.get(v):
-            if dist.get(j) > dist.get(v) + roads.get(v, j):
-                dist.update({j: dist.get(v) + roads.get(v, j)})
+            now = dist.get(v)
+            p = v, j
+            to = now + roads.get(p)
+
+            if dist.get(j) > to:
+                dist.update({j: to})
                 parents.update({v: j})
     for i in dist.keys():
 
@@ -193,10 +207,17 @@ def dijkstra(point1, point2, data):
         # просматриваем все ребра (v,to) и пытаемся улучшить значение dist.get(to)
         if wt.get(v):
             for j in wt.get(v):
-                road = roads.get(v, j)
-                if dist.get(j) > dist.get(v) + roads.get(v, j):
-                    dist.update({j: dist.get(v) + roads.get(v, j)})
-                    parents.update({v: j})
+                way=v,j
+                newadd = roads.get(way)
+                if newadd:
+                    now = dist.get(v)
+                    p = v, j
+
+                    frome=dist.get(j)
+                    to = dist.get(v) + roads.get(way)
+                    if frome > dist.get(v) + roads.get(way):
+                        dist.update({j: to})
+                        parents.update({v: j})
 
     return dist
 
@@ -206,19 +227,34 @@ data = dataInit('data.xls')
 points = generatorPoints(data)
 
 # a, b = init()
-a, b = [38.75337683, 45.11878547], [38.8036140188757, 45.0968821926186]
+# a, b = [38.75337683, 45.11878547], [38.8036140188757, 45.0968821926186]
+a, b = 51362963, 51986257
+ways=waysTo(data)
+while True:
+    print(ways.get(a))
+    roads = {(road[0], road[1]): road[6] for road in data}
+    w=[(a,b) for b in ways.get(a)]
+    print([roads.get(i) for i in w])
+    a=int(input())
 
-findPoint(a, points)
-findPoint(b, points)
+# findPoint(a, points)
+# findPoint(b, points)
 
 # roads = floidBellman(a[2], data)
-roads = dijkstra(a[2], b[2], data)
-print(roads)
+roads = dijkstra(a, b, data)
+mmm = 10000
+# vl = (list(roads.values()))
+# for i in vl:
+#     if i != 0:
+#         mmm = min(mmm, i)
+print(roads.get(b))
 # kml = simplekml.Kml()
-# # for road in data:
-# #     # kml.newpoint(coords=[(points.get(point))])
-# #     kml.newlinestring(description=str(road[6]), coords=[(road[2], road[3]), (road[4], road[5])])
-# kml.save("1.kml")
+# for road in data:
+#     # kml.newpoint(coords=[(points.get(point))])
+#     kml.newlinestring(description=str(road[6]),
+#                       coords=[(road[2], road[3]), (road[4], road[5])]).style.linestyle.color = simplekml.Color.blue
+#
+# kml.save("5.kml")
 """
 проблема в неверном условии:
 38,9774837690821 <  долгота < 39,0283642309179
